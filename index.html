@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./logo1.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Verse · 羁绊书境</title>
+    <script type="module" crossorigin src="./assets/index-DHv7SYL-.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-VcI3_lub.css">
+    
+    <style>
+      /* ========================================== */
+      /* 💥 0. 登录页云朵设置 */
+      /* ========================================== */
+      .closed-door { 
+        background: url('./caiyun.png') no-repeat center center !important; 
+        background-size: contain !important; 
+        border: none !important; 
+        box-shadow: none !important; 
+        width: 180px !important; 
+        height: 180px !important; 
+        margin: 0 auto !important;
+      }
+      .closed-door > * { display: none !important; }
+
+      /* ========================================== */
+      /* 💥 1. 完美的粉黄蓝背景 (默认状态) */
+      /* ========================================== */
+      html::before {
+        content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -9999;
+        background: radial-gradient(circle at 15% 50%, rgba(255, 223, 0, 0.5) 0%, transparent 40%),
+                    radial-gradient(circle at 85% 30%, rgba(255, 182, 193, 0.7) 0%, transparent 50%),
+                    radial-gradient(circle at 50% 80%, rgba(135, 206, 235, 0.7) 0%, transparent 50%),
+                    linear-gradient(135deg, #fce4ec 0%, #e3f2fd 100%) !important;
+      }
+
+      html, body, #app, .app-root {
+        height: 100vh !important;
+        min-height: 100vh !important;
+        margin: 0; padding: 0;
+        overflow-y: auto !important; overflow-x: hidden !important;
+        background: transparent !important; 
+      }
+
+      /* 核心修复：默认状态透明，一旦有颜色类名，立刻显示颜色！ */
+      .login-page, .home-page, .create-page, .room-page, .login-glow {
+        background: transparent !important;
+        background-image: none !important;
+      }
+          
+      /* ========================================== */
+      /* 🌟 2. 客房换色功能（解除封印！） */
+      /* ========================================== */
+      .room-page[class*="theme-"] {
+        background-color: var(--bg-dark) !important;
+      }
+      .room-page.theme-warm { background: linear-gradient(180deg,#8a5a3b,#6e4529 45%,#4a2d1a) !important; }
+      .room-page.theme-green { background: linear-gradient(180deg,#2f4f43,#263f36 45%,#182b24) !important; }
+      .room-page.theme-purple { background: linear-gradient(180deg,#4b3a63,#3b2d50 45%,#2a2039) !important; }
+      .room-page.theme-dusk { background: linear-gradient(180deg,#c96f4a,#a85532 45%,#7a3a20) !important; }
+      .room-page.theme-mist { background: linear-gradient(180deg,#5f7f99,#4d6b84 45%,#354d61) !important; }
+      .room-page.theme-moss { background: linear-gradient(180deg,#5f7f6e,#4c6a59 45%,#35493d) !important; }
+      .room-page.theme-crimson { background: linear-gradient(180deg,#a04a4a,#823a3a 45%,#5c2626) !important; }
+      .room-page.theme-moon { background: linear-gradient(180deg,#e8e4da,#d8d2c4 45%,#bdb6a4) !important; }
+
+      /* ========================================== */
+      /* 🌟 3. 首页换色功能（解除封印！） */
+      /* ========================================== */
+      .home-page[class*="hp-theme-"] {
+        background-color: var(--bg-dark) !important;
+      }
+      .home-page.hp-theme-warm { background: radial-gradient(circle at 15% 10%,rgba(138,90,59,.25),transparent 45%),radial-gradient(circle at 85% 90%,rgba(200,120,80,.15),transparent 45%),#4a2d1a !important; }
+      .home-page.hp-theme-green { background: radial-gradient(circle at 15% 10%,rgba(47,79,67,.25),transparent 45%),radial-gradient(circle at 85% 90%,rgba(80,120,90,.15),transparent 45%),#182b24 !important; }
+      .home-page.hp-theme-purple { background: radial-gradient(circle at 15% 10%,rgba(75,58,99,.28),transparent 45%),radial-gradient(circle at 85% 90%,rgba(120,80,160,.15),transparent 45%),#2a2039 !important; }
+      .home-page.hp-theme-dusk { background: radial-gradient(circle at 15% 10%,rgba(201,111,74,.28),transparent 45%),radial-gradient(circle at 85% 90%,rgba(230,140,90,.15),transparent 45%),#7a3a20 !important; }
+      .home-page.hp-theme-mist { background: radial-gradient(circle at 15% 10%,rgba(95,127,153,.25),transparent 45%),radial-gradient(circle at 85% 90%,rgba(130,160,190,.15),transparent 45%),#354d61 !important; }
+      .home-page.hp-theme-moss { background: radial-gradient(circle at 15% 10%,rgba(95,127,110,.25),transparent 45%),radial-gradient(circle at 85% 90%,rgba(120,150,130,.15),transparent 45%),#35493d !important; }
+      .home-page.hp-theme-crimson { background: radial-gradient(circle at 15% 10%,rgba(160,74,74,.28),transparent 45%),radial-gradient(circle at 85% 90%,rgba(200,100,100,.15),transparent 45%),#5c2626 !important; }
+      .home-page.hp-theme-moon { background: radial-gradient(circle at 15% 10%,rgba(232,228,218,.2),transparent 45%),radial-gradient(circle at 85% 90%,rgba(200,195,180,.15),transparent 45%),#bdb6a4 !important; }
+
+      /* ========================================== */
+      /* 💥 4. 修复登录页与基础样式 */
+      /* ========================================== */
+      .field-input { 
+        background: rgba(255, 255, 255, 0.6) !important; 
+        border: 1px solid rgba(0, 0, 0, 0.15) !important; 
+        color: #333 !important; 
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+      }
+      .field-input::placeholder { color: #888 !important; }
+      .login-sub, .door-hint, .field-label { 
+        color: #555 !important; font-weight: bold !important; 
+        text-shadow: 0 1px 2px rgba(255,255,255,0.8) !important;
+      }
+      .pwd-toggle { background: rgba(255, 255, 255, 0.9) !important; color: #333 !important; border: 1px solid #ddd !important;}
+      .mode-switch { color: #666 !important; }
+
+      .login-title, h1.login-title, .brand-title, h1.brand-title, .gradient-text, .brand h1,
+      .swing-set, .swing-longpress, .sylvia-pose-img, .reading-img, .banner-mini, .swing-bar, .brand-sub,
+      .home-foot, .pagination, [class*="pagination"], [class*="dots"],
+      .cd-plank, .cd-lock {
+        display: none !important;
+      }
+
+      .door-cg { background: transparent !important; }
+      .door-cg .door, .door-cg .greet-ball { display: none !important; }
+      .cg-skip { color: #d81b60 !important; font-weight: bold; font-size: 15px !important; }
+
+      /* ========================================== */
+      /* 💥 5. 卡片 4 列网格布局 & 恢复滚动 */
+      /* ========================================== */
+      .home-page { 
+        display: block !important; 
+        padding-top: 90px !important; 
+        padding-bottom: 50px !important; 
+        height: auto !important; 
+        min-height: 100vh !important;
+        overflow: visible !important; 
+      }
+      
+      .shelf-container {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+
+      .card-track { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 24px !important; padding: 10px 40px 60px !important; width: 100% !important; height: auto !important; box-sizing: border-box !important; overflow: visible !important; transform: none !important; scroll-snap-type: none !important; }
+      .card-wrapper { width: 100% !important; max-width: 300px !important; height: 570px !important; margin: 0 auto !important; padding: 0 !important; transform: none !important; opacity: 1 !important; visibility: visible !important; box-sizing: border-box !important; }
+      
+      .card { border: 1px solid rgba(255, 255, 255, 0.2) !important; border-radius: 20px !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; height: 100% !important; }
+      .cover-img-wrap { background: linear-gradient(135deg, #4a3a5c, #2a2039) !important; height: 270px !important; flex: none !important; }
+      .cover-img { width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; }
+      .card-body { background: transparent !important; padding: 16px 18px !important; flex: 1 !important; display: flex !important; flex-direction: column !important; }
+      .card-desc { display: -webkit-box !important; -webkit-line-clamp: 3 !important; -webkit-box-orient: vertical !important; overflow: hidden !important; flex: 1 !important; }
+      .cta-row { margin-top: auto !important; padding-top: 10px !important; }
+      .card p, .card h1, .card h2, .card h3, .card span:not(.cta-icon) { color: #ffffff !important; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) !important; }
+      .tags .tag { background: rgba(255, 255, 255, 0.2) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 50px !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important; }
+      .intro-tag { color: #ffffff !important; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important; }
+      
+      .create-page .top-bar, .room-header { background: transparent !important; backdrop-filter: none !important; }
+      .create-page .card, .pocket-card, .visitor-card { background: rgba(20, 20, 30, 0.35) !important; backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; }
+      .create-page .field-textarea { background: rgba(255, 255, 255, 0.1) !important; color: #fff !important; }
+      .room-title, .room-subtitle, .pocket-titles h2, .visitor-titles h2, .spine-name, .pocket-titles p, .visitor-titles p, .spine-title, .room-count { color: #fff !important; text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important; }
+
+      /* ========================================== */
+      /* 💥 6. 顶部 Logo 与按钮 */
+      /* ========================================== */
+      #logo-wrapper { position: fixed !important; top: 25px !important; left: 0 !important; width: 100% !important; height: 0 !important; text-align: center !important; z-index: 99999999 !important; pointer-events: none !important; display: none; }
+      #custom-verse-logo { display: inline-block; font-size: 36px; font-weight: 900; letter-spacing: 5px; font-family: "Songti SC", "Noto Serif SC", serif; background: linear-gradient(135deg, #ff6b9d 0%, #9d4edd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 10px rgba(157, 78, 221, 0.4)); transform: translateY(-50%); }
+      
+      .top-bar { display: flex !important; justify-content: flex-end !important; align-items: center !important; padding: 20px 40px !important; gap: 10px !important; background: transparent !important; }
+      .top-bar .brand, .top-bar .banner-mini { display: none !important; }
+      .house-btn { color: #d81b60 !important; background: rgba(255, 255, 255, 0.85) !important; border: 1px solid rgba(255, 255, 255, 1) !important; width: 42px !important; height: 42px !important; border-radius: 12px !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important; margin: 0 !important; }
+      .house-btn svg { stroke: #d81b60 !important; }
+
+      /* ========================================== */
+      /* 💥 7. 新手引导遮罩 */
+      /* ========================================== */
+      #welcome-guide-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 999999999; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+      #welcome-guide-overlay.show { display: flex; opacity: 1; }
+      .guide-box { background: rgba(255, 255, 255, 0.95); width: 90%; max-width: 500px; border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2); animation: slideUp 0.4s ease; }
+      @keyframes slideUp { 0% { transform: translateY(30px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+      .guide-box h1 { text-align: center; color: #d81b60; font-size: 24px; margin-bottom: 8px; }
+      .guide-box p.sub { text-align: center; color: #666; font-size: 14px; margin-bottom: 20px; }
+      .guide-item { margin-bottom: 16px; }
+      .guide-item h3 { font-size: 16px; color: #9d4edd; margin-bottom: 6px; }
+      .guide-item p { font-size: 14px; color: #555; line-height: 1.6; }
+      .guide-btn { display: block; width: 100%; padding: 15px; background: linear-gradient(135deg, #ff6b9d, #9d4edd); color: #fff; text-align: center; border-radius: 30px; font-size: 16px; font-weight: bold; border: none; cursor: pointer; margin-top: 24px; box-shadow: 0 8px 20px rgba(157, 78, 221, 0.3); }
+      .guide-btn:active { transform: scale(0.98); }
+    </style>
+  </head>
+  <body>
+    <div id="custom-loading-mask" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99999; background: linear-gradient(135deg, #fce4ec 0%, #e3f2fd 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
+      <div style="color: #d81b60; font-size: 20px; font-weight: bold; letter-spacing: 2px;">Verse 正在为您装点书屋…</div>
+    </div>
+
+    <div id="logo-wrapper">
+      <div id="custom-verse-logo">Verse</div>
+    </div>
+
+    <div id="app"></div>
+
+    <div id="welcome-guide-overlay">
+      <div class="guide-box">
+        <h1>📖 欢迎来到 Verse</h1>
+        <p class="sub">这是你的专属书境，请先阅读入梦指南</p>
+        
+        <div class="guide-item">
+          <h3>🖌️ 1. Verse简介</h3>
+          <p>发现新大陆，与书中的TA开启专属浪漫羁绊。</p>
+        </div>
+        <div class="guide-item">
+          <h3>✨ 2. 如何阅读与互动</h3>
+          <p>点击任意角色卡片即可进入故事。在底部输入框与书中的人对话，你的每一句话都会改变剧情的走向。</p>
+        </div>
+        <div class="guide-item">
+          <h3>💗 3. 好感度系统</h3>
+          <p>互动和送礼能提升好感度。越亲密，他们越会向你展露真实的模样。点击左上角头像可查看当前关系。</p>
+        </div>
+
+        <button class="guide-btn" onclick="closeGuide()">我已了解，进入书境</button>
+      </div>
+    </div>
+    
+    <script>
+      // ========================================================
+      // 🌟 终极防线：数据绝对保护 + 正常换色渲染
+      // ========================================================
+      (function() {
+        const originalSetItem = Storage.prototype.setItem;
+        const originalGetItem = Storage.prototype.getItem;
+        
+        Storage.prototype.setItem = function(key, value) {
+          if (key === 'verse_settings' || key === 'sylvia_settings') {
+            try {
+              let newSettings = JSON.parse(value);
+              let oldStr = originalGetItem.call(this, key);
+              
+              if (oldStr && !window.__IS_RESETTING) {
+                let oldSettings = JSON.parse(oldStr);
+                if (!newSettings.homeTheme && oldSettings.homeTheme) newSettings.homeTheme = oldSettings.homeTheme;
+                if (!newSettings.roomTheme && oldSettings.roomTheme) newSettings.roomTheme = oldSettings.roomTheme;
+                
+                if (newSettings.homeTheme !== newSettings.roomTheme) {
+                  let target = newSettings.homeTheme || newSettings.roomTheme;
+                  newSettings.homeTheme = target;
+                  newSettings.roomTheme = target;
+                }
+              }
+              value = JSON.stringify(newSettings);
+            } catch (e) {}
+          }
+          originalSetItem.call(this, key, value);
+        };
+
+        document.addEventListener('click', function(e) {
+          if (e.target.closest('.decor-btn.reset')) {
+            window.__IS_RESETTING = true;
+            setTimeout(() => {
+              try {
+                let s = originalGetItem.call(localStorage, 'verse_settings') || originalGetItem.call(localStorage, 'sylvia_settings');
+                if (s) {
+                  let settings = JSON.parse(s);
+                  settings.homeTheme = "";
+                  settings.roomTheme = "";
+                  originalSetItem.call(localStorage, 'verse_settings', JSON.stringify(settings));
+                  originalSetItem.call(localStorage, 'sylvia_settings', JSON.stringify(settings));
+                }
+              } catch (err) {}
+            }, 50);
+          }
+        });
+      })();
+
+      // ================ 页面加载与文字替换逻辑 ================
+      window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          const mask = document.getElementById('custom-loading-mask');
+          if (mask) {
+            mask.style.opacity = '0';
+            setTimeout(() => { mask.style.display = 'none'; }, 500); 
+          }
+        }, 800);
+
+        // 所有的循环检测都放在这里
+        setInterval(() => {
+          try {
+            const currentHash = window.location.hash;
+            const isHomePage = (currentHash === '' || currentHash === '#' || currentHash === '#/' || currentHash === '#/home');
+
+            const logoWrapper = document.getElementById('logo-wrapper');
+            if (logoWrapper) {
+              if (isHomePage) {
+                logoWrapper.style.setProperty('display', 'block', 'important');
+              } else {
+                logoWrapper.style.setProperty('display', 'none', 'important');
+              }
+            }
+
+            const topBar = document.querySelector('.top-bar');
+            if (topBar && !document.getElementById('guide-icon-btn')) {
+              const guideBtn = document.createElement('button');
+              guideBtn.id = 'guide-icon-btn';
+              guideBtn.className = 'house-btn'; 
+              guideBtn.innerHTML = `<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+              guideBtn.onclick = () => document.getElementById('welcome-guide-overlay').classList.add('show');
+              topBar.appendChild(guideBtn);
+            }
+
+            // 🚀 终极文字替换（安全版）：只替换文本，不破坏 Vue 的事件绑定
+            const treeWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+            let currentNode;
+            while ((currentNode = treeWalker.nextNode())) {
+              // 1. 替换 Sylvia
+              if (currentNode.nodeValue.includes('Sylvia')) {
+                currentNode.nodeValue = currentNode.nodeValue.replace(/Sylvia/g, 'Verse');
+              }
+              // 2. 替换 神明的森林书屋 (如果想删掉直接留空字符串 '')
+              if (currentNode.nodeValue.includes('神明的森林书屋')) {
+                currentNode.nodeValue = currentNode.nodeValue.replace(/神明的森林书屋/g, '梦幻的书境');
+              }
+            }
+          } catch (error) {
+            // 即使替换过程中遇到任何小问题，也不会让整个页面死机白屏
+            console.warn("文字替换时遇到小问题，已忽略以保护页面", error);
+          }
+        }, 500);
+
+        const overlay = document.getElementById('welcome-guide-overlay');
+        setTimeout(() => {
+          const currentHash = window.location.hash;
+          const isLoginPage = currentHash.includes('login');
+          if (!localStorage.getItem('verse_guide_done') && !isLoginPage && overlay) {
+            overlay.classList.add('show');
+          }
+        }, 1200); 
+      });
+
+      function closeGuide() {
+        localStorage.setItem('verse_guide_done', 'true');
+        const overlay = document.getElementById('welcome-guide-overlay');
+        if (overlay) overlay.classList.remove('show');
+      }
+    </script>
+  
+  </body>
+</html>
