@@ -321,6 +321,32 @@
         const overlay = document.getElementById('welcome-guide-overlay');
         if (overlay) overlay.classList.remove('show');
       }
+      // ==========================================
+      // 终极底牌：强行劫持所有 /api 请求，发往 Railway
+      // ==========================================
+      (function() {
+        const RAILWAY_URL = "https://verse-server-production-d132dab9.up.railway.app";
+        const originalFetch = window.fetch;
+
+        window.fetch = function(input, init) {
+          let url = typeof input === 'string' ? input : input.url;
+          
+          // 只要请求包含 /api，就强行替换目标地址
+          if (url && url.includes('/api/')) {
+            // 把相对路径替换成绝对地址
+            const newUrl = url.replace(/^.*\/api\//, RAILWAY_URL + '/api/');
+            console.log('🚀 拦截请求：', url, '-> 重定向至：', newUrl);
+            
+            if (typeof input === 'string') {
+              input = newUrl;
+            } else {
+              // 如果是 Request 对象，重新构造一个
+              input = new Request(newUrl, input);
+            }
+          }
+          return originalFetch(input, init);
+        };
+      })();
     </script>
   
   </body>
