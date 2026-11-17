@@ -5,6 +5,58 @@
     <link rel="icon" type="image/png" href="./logo1.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Verse · 羁绊书境</title>
+        <script>
+      (function() {
+        const RAILWAY_URL = "https://verse-server-production-d132dab9.up.railway.app";
+        
+        // 核心：只针对特定路径进行修补，绝不乱动其他请求
+        function fixUrl(url) {
+          if (typeof url !== 'string') return url;
+          if (url.includes('railway.app')) return url;
+
+          // 1. 修复 API 请求（解决 books 和 mine 的 404）
+          // 前端请求通常是 /books, /mine, /api/xxx，或者以这些开头的相对路径
+          if (url === '/books' || url.startsWith('/books?') || 
+              url === '/mine' || url.startsWith('/mine?') ||
+              url.startsWith('/api/')) {
+            console.log("🚀 修复API请求:", url, "->", RAILWAY_URL + (url.startsWith('/api/') ? url : '/api' + url));
+            return RAILWAY_URL + (url.startsWith('/api/') ? url : '/api' + url);
+          }
+
+          // 2. 修复静态资源请求（解决图片 404）
+          // 如果请求了 /reading-fireplace.png 等，说明它在找根目录，我们强行给它加上 /verse_book/
+          if (url.startsWith('/') && !url.startsWith('/verse_book/') && !url.startsWith('/api/')) {
+            console.log("🖼️ 修复静态资源:", url, "-> /verse_book" + url);
+            return "/verse_book" + url;
+          }
+          
+          return url;
+        }
+
+        // 劫持 fetch
+        const originalFetch = window.fetch;
+        window.fetch = function(input, init) {
+          if (typeof input === 'string') {
+            input = fixUrl(input);
+          } else if (input instanceof Request) {
+            const newUrl = fixUrl(input.url);
+            if (newUrl !== input.url) input = new Request(newUrl, input);
+          }
+          return originalFetch(input, init);
+        };
+
+        // 劫持 XMLHttpRequest (防 axios)
+        const originalXHR = window.XMLHttpRequest;
+        window.XMLHttpRequest = function() {
+          const xhr = new originalXHR();
+          const originalOpen = xhr.open;
+          xhr.open = function(method, url, ...args) {
+            return originalOpen.call(this, method, fixUrl(url), ...args);
+          };
+          return xhr;
+        };
+      })();
+    </script>
     <script type="module" crossorigin src="./assets/index-DHv7SYL-.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-VcI3_lub.css">
     
