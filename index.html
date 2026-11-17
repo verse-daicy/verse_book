@@ -252,60 +252,68 @@
         });
       })();
       // =========================================================
-      // 🚀 终极安全版：只拦截 API，轻量修复图片
+      // 🚀 终极天罗地网：同时拦截 fetch 和 XMLHttpRequest (XHR)
+      // 并强制替换所有包含 auth 或 api 的请求至 Railway 后端
       // =========================================================
       (function() {
         const RAILWAY_URL = "https://verse-server-production-d132dab9.up.railway.app";
         
-        // 1. 拦截 Fetch (修复登录)
+        function fixUrl(url) {
+          if (typeof url !== 'string') return url;
+          // 如果已经包含了 railway，或者不是发往 api/auth 的，直接放过
+          if (url.includes('railway.app')) return url;
+          if (!url.includes('api') && !url.includes('auth')) return url;
+          
+          console.log("🚀 拦截到请求: ", url);
+          
+          // 提取 url 中的 api/ 或 auth/ 之后的部分
+          let path = url;
+          let apiIndex = url.indexOf('/api/');
+          if (apiIndex !== -1) {
+             path = url.substring(apiIndex + 5); // 拿到 /api/ 后面的内容
+          } else {
+             apiIndex = url.indexOf('api/');
+             if (apiIndex !== -1) path = url.substring(apiIndex + 4);
+          }
+
+          if (!path.startsWith('/') && !path.startsWith('http')) {
+              path = '/' + path;
+          }
+          
+          // 拼接成绝对路径
+          let newUrl = path.includes('/api/') ? RAILWAY_URL + path : RAILWAY_URL + '/api' + path;
+          
+          // 兜底，如果原来的 url 前面有斜杠
+          if (url.startsWith('/api/')) newUrl = RAILWAY_URL + url;
+          
+          console.log("✅ 强行重定向至: ", newUrl);
+          return newUrl;
+        }
+
+        // 1. 拦截 Fetch
         const originalFetch = window.fetch;
         window.fetch = function(input, init) {
-          let url = typeof input === 'string' ? input : input.url;
-          if (url && url.includes('/api/') && !url.includes('railway.app')) {
-            let newUrl = url.replace(/^.*\/api\//, RAILWAY_URL + '/api/');
-            if (typeof input === 'string') input = newUrl;
-            else input = new Request(newUrl, input);
+          if (typeof input === 'string') {
+            input = fixUrl(input);
+          } else if (input instanceof Request) {
+            const newUrl = fixUrl(input.url);
+            if (newUrl !== input.url) input = new Request(newUrl, input);
           }
           return originalFetch(input, init);
         };
 
-        // 2. 拦截 XHR (防 axios 等)
+        // 2. 拦截 XMLHttpRequest (防 axios 等库)
         const originalXHR = window.XMLHttpRequest;
-        window.XMLHttpRequest = function() {
+        function newXHR() {
           const xhr = new originalXHR();
           const originalOpen = xhr.open;
-          xhr.open = function(method, url, ...args) {
-            if (url && url.includes('/api/') && !url.includes('railway.app')) {
-              url = url.replace(/^.*\/api\//, RAILWAY_URL + '/api/');
-            }
-            return originalOpen.call(this, method, url, ...args);
+          xhr.open = function(method, url, async, user, password) {
+            const newUrl = fixUrl(url);
+            return originalOpen.call(this, method, newUrl, async, user, password);
           };
           return xhr;
-        };
-
-        // 3. 轻量修复图片 (不用死循环监听，直接用全局捕获)
-        window.addEventListener('error', function(e) {
-          if (e.target && e.target.tagName === 'IMG') {
-            let img = e.target;
-            if (img.dataset.triedFix) return; // 防止死循环
-            img.dataset.triedFix = 'true';
-            
-            let src = img.src;
-            console.log("发现图片 404，尝试抢救:", src);
-            
-            // 抢救方案 A：如果请求的是根目录图片，尝试去 GitHub 的 covers 或 assets 目录找
-            if (src.includes('github.io') && !src.includes('verse_book/assets') && !src.includes('verse_book/covers')) {
-                let filename = src.split('/').pop();
-                // 尝试前端仓库的 covers 文件夹
-                img.src = `https://verse-daicy.github.io/verse_book/covers/${filename}`;
-            }
-            // 抢救方案 B：如果图片在后端，尝试从 Railway 拉取
-            else if (src.includes('github.io')) {
-                let filename = src.split('/').pop();
-                img.src = RAILWAY_URL + '/covers/' + filename;
-            }
-          }
-        }, true); // 使用捕获阶段，确保能抓到资源加载失败
+        }
+        window.XMLHttpRequest = newXHR;
       })();
     </script>
   
