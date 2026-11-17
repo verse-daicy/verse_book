@@ -220,6 +220,54 @@
       .guide-btn { display: block; width: 100%; padding: 15px; background: linear-gradient(135deg, #ff6b9d, #9d4edd); color: #fff; text-align: center; border-radius: 30px; font-size: 16px; font-weight: bold; border: none; cursor: pointer; margin-top: 24px; box-shadow: 0 8px 20px rgba(157, 78, 221, 0.3); }
       .guide-btn:active { transform: scale(0.98); }
     </style>
+        <!-- 🚀 终极救命补丁：强行关遮罩 + 强行修正图片路径 -->
+    <script>
+      (function() {
+        // 1. 强行关掉那个“装点书屋”的遮罩
+        // 不管 Vue 报什么错，1.5秒后我们直接把这个遮罩从页面上拔掉！
+        setTimeout(function() {
+          const mask = document.getElementById('custom-loading-mask');
+          if (mask) {
+            console.log("强制移除加载遮罩");
+            mask.style.display = 'none';
+            mask.remove(); // 直接删掉它
+          }
+        }, 1500);
+
+        // 2. 强行修正图片路径
+        // 监听所有图片的加载失败事件
+        window.addEventListener('error', function(e) {
+          if (e.target && e.target.tagName === 'IMG') {
+            let img = e.target;
+            // 如果这张图还没尝试过修复，并且不是 base64 数据
+            if (!img.dataset.triedFix && img.src.indexOf('data:image') === -1) {
+              img.dataset.triedFix = 'true';
+              let filename = img.src.split('/').pop();
+              
+              // 方案 A：如果在 GitHub 仓库根目录
+              let newSrc1 = `https://verse-daicy.github.io/verse_book/${filename}`;
+              
+              console.log("尝试修复图片:", img.src, "->", newSrc1);
+              img.src = newSrc1; 
+              
+              // 如果改了还是错，触发第二次修复，尝试去 assets 或 covers 找
+              img.addEventListener('error', function() {
+                if (img.dataset.triedFix2) return;
+                img.dataset.triedFix2 = 'true';
+                let newSrc2 = `https://verse-daicy.github.io/verse_book/assets/${filename}`;
+                let newSrc3 = `https://verse-daicy.github.io/verse_book/covers/${filename}`;
+                console.log("尝试去子目录找:", newSrc2);
+                img.src = newSrc2;
+                
+                img.addEventListener('error', function() {
+                   img.src = newSrc3;
+                }, {once: true});
+              }, {once: true});
+            }
+          }
+        }, true); // true 表示捕获阶段拦截
+      })();
+    </script>
   </head>
   <body>
     <div id="custom-loading-mask" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99999; background: linear-gradient(135deg, #fce4ec 0%, #e3f2fd 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
