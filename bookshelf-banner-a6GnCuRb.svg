@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 160" role="img" aria-labelledby="title desc">
+  <title id="title">Sylvia 森林书屋横向书架</title>
+  <desc id="desc">适配深紫色界面的暖木色横向书架，摆有书籍、月亮书挡、蘑菇灯与藤蔓。</desc>
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8c5529"/>
+      <stop offset="0.48" stop-color="#613718"/>
+      <stop offset="1" stop-color="#3a1d0f"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#b97836"/>
+      <stop offset="0.5" stop-color="#e0a14b"/>
+      <stop offset="1" stop-color="#7a421f"/>
+    </linearGradient>
+    <linearGradient id="pinkBook" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#ff78b5"/>
+      <stop offset="1" stop-color="#b83b78"/>
+    </linearGradient>
+    <linearGradient id="goldBook" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#ffd978"/>
+      <stop offset="1" stop-color="#c77b22"/>
+    </linearGradient>
+    <radialGradient id="lamp" cx="50%" cy="45%" r="56%">
+      <stop offset="0" stop-color="#fff8b8"/>
+      <stop offset="0.5" stop-color="#ffd35d"/>
+      <stop offset="1" stop-color="#e28b20"/>
+    </radialGradient>
+    <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <filter id="shadow" x="-20%" y="-50%" width="140%" height="220%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#080510" flood-opacity=".72"/>
+    </filter>
+  </defs>
+
+  <!-- very subtle night ambience; the canvas itself stays transparent -->
+  <g fill="#ffcf59">
+    <circle cx="64" cy="31" r="2.2" opacity=".9"/>
+    <circle cx="219" cy="21" r="1.8" opacity=".65"/>
+    <circle cx="496" cy="29" r="2.3" opacity=".8"/>
+    <circle cx="650" cy="21" r="1.7" opacity=".6"/>
+  </g>
+  <g fill="none" stroke="#ff7fbd" stroke-linecap="round" opacity=".72">
+    <path d="M120 24v8M116 28h8"/>
+    <path d="M606 38v7M602.5 41.5h7"/>
+  </g>
+
+  <!-- back rail -->
+  <path d="M30 116V58c0-9 7-16 16-16h608c9 0 16 7 16 16v58" fill="none" stroke="#3b2014" stroke-width="11" stroke-linecap="round" opacity=".88"/>
+  <path d="M45 53h610" stroke="#8f552a" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+
+  <!-- left books -->
+  <g filter="url(#shadow)" stroke="#241323" stroke-width="3" stroke-linejoin="round">
+    <path d="M56 47h30v70H56z" fill="#65408d"/>
+    <path d="M62 53h4v58h-4z" fill="#a779c9" stroke="none" opacity=".65"/>
+    <path d="M89 37h34v80H89z" fill="url(#pinkBook)"/>
+    <path d="M96 46h20" stroke="#ffd0e6" stroke-width="3"/>
+    <path d="M96 105h20" stroke="#7d2854" stroke-width="3"/>
+    <path d="M126 55h27v62h-27z" fill="#2e7080"/>
+    <path d="M133 63h13M133 69h13" stroke="#91d1c9" stroke-width="2" opacity=".65"/>
+    <path d="M158 50l27-6 15 69-27 6z" fill="#d18a34"/>
+    <path d="M168 56l18-4" stroke="#ffe094" stroke-width="3"/>
+  </g>
+
+  <!-- moon bookend -->
+  <g filter="url(#shadow)">
+    <path d="M214 74c0-19 15-34 34-34 7 0 13 2 18 5-16 3-27 17-27 33 0 14 8 26 20 31-4 2-8 3-13 3-18 0-32-17-32-38z" fill="#ffd663" stroke="#f2a82d" stroke-width="3"/>
+    <circle cx="250" cy="69" r="2.2" fill="#fff4bf"/>
+  </g>
+
+  <!-- center miniature library arch -->
+  <g filter="url(#shadow)">
+    <path d="M285 117V66c0-20 16-36 36-36h58c20 0 36 16 36 36v51z" fill="#241522" stroke="#754322" stroke-width="7"/>
+    <path d="M299 116V67c0-13 10-23 23-23h56c13 0 23 10 23 23v49" fill="#150f1c" stroke="#a86b31" stroke-width="3"/>
+    <path d="M350 45v71" stroke="#4b2b1c" stroke-width="4"/>
+    <path d="M301 79h98M301 98h98" stroke="#5d351f" stroke-width="4"/>
+    <g stroke="#160d17" stroke-width="1.5">
+      <path d="M307 56h8v21h-8z" fill="#d45a91"/><path d="M316 52h10v25h-10z" fill="#6e4c99"/><path d="M327 59h8v18h-8z" fill="#d79a38"/><path d="M337 49h10v28h-10z" fill="#367987"/>
+      <path d="M354 57h8v20h-8z" fill="#c37c2f"/><path d="M363 50h10v27h-10z" fill="#e568a0"/><path d="M374 60h8v17h-8z" fill="#74549c"/><path d="M383 54h10v23h-10z" fill="#d8a146"/>
+      <path d="M307 82h10v14h-10z" fill="#3f8190"/><path d="M319 80h8v16h-8z" fill="#d65991"/><path d="M329 84h17v12h-17z" fill="#c18735"/>
+      <path d="M354 81h9v15h-9z" fill="#7652a0"/><path d="M365 84h15v12h-15z" fill="#d9983a"/><path d="M382 79h10v17h-10z" fill="#bf4e7d"/>
+      <path d="M306 102h15v13h-15z" fill="#76509c"/><path d="M323 100h10v15h-10z" fill="#dca03c"/><path d="M335 104h12v11h-12z" fill="#397886"/>
+      <path d="M354 101h16v14h-16z" fill="#d2588d"/><path d="M372 105h20v10h-20z" fill="#c88936"/>
+    </g>
+    <circle cx="350" cy="27" r="4" fill="#ff7fbd"/>
+  </g>
+
+  <!-- right books -->
+  <g filter="url(#shadow)" stroke="#241323" stroke-width="3" stroke-linejoin="round">
+    <path d="M449 59h29v58h-29z" fill="#347b84"/>
+    <path d="M456 66h15" stroke="#9ad5c9" stroke-width="3"/>
+    <path d="M481 44h35v73h-35z" fill="url(#goldBook)"/>
+    <path d="M490 52h17M490 108h17" stroke="#fff0af" stroke-width="3"/>
+    <path d="M519 52h29v65h-29z" fill="#694592"/>
+    <path d="M526 60h15" stroke="#c59de2" stroke-width="3"/>
+    <path d="M553 39l31 8-18 71-31-8z" fill="url(#pinkBook)"/>
+    <path d="M558 49l18 5" stroke="#ffd1e6" stroke-width="3"/>
+  </g>
+
+  <!-- mushroom reading lamp -->
+  <g filter="url(#shadow)">
+    <ellipse cx="619" cy="112" rx="35" ry="6" fill="#2a1420" opacity=".8"/>
+    <circle cx="620" cy="70" r="27" fill="#ffcb47" opacity=".18" filter="url(#softGlow)"/>
+    <path d="M614 78h12v36h-12z" fill="#f4d28d" stroke="#7a3f20" stroke-width="3"/>
+    <path d="M587 78c5-25 20-37 33-37 14 0 29 12 34 37z" fill="url(#lamp)" stroke="#a85b20" stroke-width="3"/>
+    <circle cx="604" cy="66" r="3" fill="#fff1a6" opacity=".8"/>
+    <circle cx="630" cy="57" r="4" fill="#fff1a6" opacity=".75"/>
+    <path d="M604 114h32" stroke="#a45e28" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- forest vine -->
+  <path d="M31 113c45-19 73 9 111 0 39-9 59 5 89 2M479 113c39-12 61 8 95-2 33-9 59 7 96-5" fill="none" stroke="#6f8c4e" stroke-width="4" stroke-linecap="round"/>
+  <g fill="#89a95f" stroke="#314429" stroke-width="1.5">
+    <path d="M78 113c-9-18-23-13-25-4 10 4 18 5 25 4z"/>
+    <path d="M145 112c8-17 22-13 25-4-9 4-17 5-25 4z"/>
+    <path d="M522 112c-7-17-21-14-25-5 8 5 17 6 25 5z"/>
+    <path d="M659 108c-7-16-20-13-24-5 8 5 16 6 24 5z"/>
+  </g>
+
+  <!-- main shelf -->
+  <g filter="url(#shadow)">
+    <rect x="18" y="113" width="664" height="21" rx="8" fill="url(#wood)" stroke="#2b1510" stroke-width="4"/>
+    <path d="M28 116h644" stroke="url(#edge)" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+    <path d="M46 134v11M654 134v11" stroke="#4a2817" stroke-width="13" stroke-linecap="round"/>
+    <path d="M33 135h634" stroke="#130b13" stroke-width="4" opacity=".55"/>
+  </g>
+
+  <!-- small magical motes in front -->
+  <g fill="#ffd45b">
+    <circle cx="273" cy="104" r="2.5"/>
+    <circle cx="427" cy="63" r="2"/>
+    <circle cx="595" cy="36" r="2.2"/>
+  </g>
+</svg>
