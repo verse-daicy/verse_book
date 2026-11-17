@@ -202,7 +202,7 @@
       </div>
     </div>
     
-    
+    <script>
       // ========================================================
       // 🌟 终极防线：数据绝对保护 + 正常换色渲染
       // ========================================================
@@ -251,62 +251,7 @@
           }
         });
       })();
-      // =========================================================
-      // 🚀 终极安全版：只拦截 API，轻量修复图片
-      // =========================================================
-      (function() {
-        const RAILWAY_URL = "https://verse-server-production-d132dab9.up.railway.app";
-        
-        // 1. 拦截 Fetch (修复登录)
-        const originalFetch = window.fetch;
-        window.fetch = function(input, init) {
-          let url = typeof input === 'string' ? input : input.url;
-          if (url && url.includes('/api/') && !url.includes('railway.app')) {
-            let newUrl = url.replace(/^.*\/api\//, RAILWAY_URL + '/api/');
-            if (typeof input === 'string') input = newUrl;
-            else input = new Request(newUrl, input);
-          }
-          return originalFetch(input, init);
-        };
-
-        // 2. 拦截 XHR (防 axios 等)
-        const originalXHR = window.XMLHttpRequest;
-        window.XMLHttpRequest = function() {
-          const xhr = new originalXHR();
-          const originalOpen = xhr.open;
-          xhr.open = function(method, url, ...args) {
-            if (url && url.includes('/api/') && !url.includes('railway.app')) {
-              url = url.replace(/^.*\/api\//, RAILWAY_URL + '/api/');
-            }
-            return originalOpen.call(this, method, url, ...args);
-          };
-          return xhr;
-        };
-
-        // 3. 轻量修复图片 (不用死循环监听，直接用全局捕获)
-        window.addEventListener('error', function(e) {
-          if (e.target && e.target.tagName === 'IMG') {
-            let img = e.target;
-            if (img.dataset.triedFix) return; // 防止死循环
-            img.dataset.triedFix = 'true';
-            
-            let src = img.src;
-            console.log("发现图片 404，尝试抢救:", src);
-            
-            // 抢救方案 A：如果请求的是根目录图片，尝试去 GitHub 的 covers 或 assets 目录找
-            if (src.includes('github.io') && !src.includes('verse_book/assets') && !src.includes('verse_book/covers')) {
-                let filename = src.split('/').pop();
-                // 尝试前端仓库的 covers 文件夹
-                img.src = `https://verse-daicy.github.io/verse_book/covers/${filename}`;
-            }
-            // 抢救方案 B：如果图片在后端，尝试从 Railway 拉取
-            else if (src.includes('github.io')) {
-                let filename = src.split('/').pop();
-                img.src = RAILWAY_URL + '/covers/' + filename;
-            }
-          }
-        }, true); // 使用捕获阶段，确保能抓到资源加载失败
-      })();
+     
     </script>
   
   </body>
