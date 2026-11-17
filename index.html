@@ -1,6 +1,58 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
+      <script>
+      (function() {
+        const RAILWAY_URL = "https://verse-server-production-d132dab9.up.railway.app";
+        
+        // 核心：只针对特定路径进行修补，绝不乱动其他请求
+        function fixUrl(url) {
+          if (typeof url !== 'string') return url;
+          if (url.includes('railway.app')) return url;
+
+          // 1. 修复 API 请求（解决 books 和 mine 的 404）
+          // 前端请求通常是 /books, /mine, /api/xxx，或者以这些开头的相对路径
+          if (url === '/books' || url.startsWith('/books?') || 
+              url === '/mine' || url.startsWith('/mine?') ||
+              url.startsWith('/api/')) {
+            console.log("🚀 修复API请求:", url, "->", RAILWAY_URL + (url.startsWith('/api/') ? url : '/api' + url));
+            return RAILWAY_URL + (url.startsWith('/api/') ? url : '/api' + url);
+          }
+
+          // 2. 修复静态资源请求（解决图片 404）
+          // 如果请求了 /reading-fireplace.png 等，说明它在找根目录，我们强行给它加上 /verse_book/
+          if (url.startsWith('/') && !url.startsWith('/verse_book/') && !url.startsWith('/api/')) {
+            console.log("🖼️ 修复静态资源:", url, "-> /verse_book" + url);
+            return "/verse_book" + url;
+          }
+          
+          return url;
+        }
+
+        // 劫持 fetch
+        const originalFetch = window.fetch;
+        window.fetch = function(input, init) {
+          if (typeof input === 'string') {
+            input = fixUrl(input);
+          } else if (input instanceof Request) {
+            const newUrl = fixUrl(input.url);
+            if (newUrl !== input.url) input = new Request(newUrl, input);
+          }
+          return originalFetch(input, init);
+        };
+
+        // 劫持 XMLHttpRequest (防 axios)
+        const originalXHR = window.XMLHttpRequest;
+        window.XMLHttpRequest = function() {
+          const xhr = new originalXHR();
+          const originalOpen = xhr.open;
+          xhr.open = function(method, url, ...args) {
+            return originalOpen.call(this, method, fixUrl(url), ...args);
+          };
+          return xhr;
+        };
+      })();
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="./logo1.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -168,6 +220,54 @@
       .guide-btn { display: block; width: 100%; padding: 15px; background: linear-gradient(135deg, #ff6b9d, #9d4edd); color: #fff; text-align: center; border-radius: 30px; font-size: 16px; font-weight: bold; border: none; cursor: pointer; margin-top: 24px; box-shadow: 0 8px 20px rgba(157, 78, 221, 0.3); }
       .guide-btn:active { transform: scale(0.98); }
     </style>
+        <!-- 🚀 终极救命补丁：强行关遮罩 + 强行修正图片路径 -->
+    <script>
+      (function() {
+        // 1. 强行关掉那个“装点书屋”的遮罩
+        // 不管 Vue 报什么错，1.5秒后我们直接把这个遮罩从页面上拔掉！
+        setTimeout(function() {
+          const mask = document.getElementById('custom-loading-mask');
+          if (mask) {
+            console.log("强制移除加载遮罩");
+            mask.style.display = 'none';
+            mask.remove(); // 直接删掉它
+          }
+        }, 1500);
+
+        // 2. 强行修正图片路径
+        // 监听所有图片的加载失败事件
+        window.addEventListener('error', function(e) {
+          if (e.target && e.target.tagName === 'IMG') {
+            let img = e.target;
+            // 如果这张图还没尝试过修复，并且不是 base64 数据
+            if (!img.dataset.triedFix && img.src.indexOf('data:image') === -1) {
+              img.dataset.triedFix = 'true';
+              let filename = img.src.split('/').pop();
+              
+              // 方案 A：如果在 GitHub 仓库根目录
+              let newSrc1 = `https://verse-daicy.github.io/verse_book/${filename}`;
+              
+              console.log("尝试修复图片:", img.src, "->", newSrc1);
+              img.src = newSrc1; 
+              
+              // 如果改了还是错，触发第二次修复，尝试去 assets 或 covers 找
+              img.addEventListener('error', function() {
+                if (img.dataset.triedFix2) return;
+                img.dataset.triedFix2 = 'true';
+                let newSrc2 = `https://verse-daicy.github.io/verse_book/assets/${filename}`;
+                let newSrc3 = `https://verse-daicy.github.io/verse_book/covers/${filename}`;
+                console.log("尝试去子目录找:", newSrc2);
+                img.src = newSrc2;
+                
+                img.addEventListener('error', function() {
+                   img.src = newSrc3;
+                }, {once: true});
+              }, {once: true});
+            }
+          }
+        }, true); // true 表示捕获阶段拦截
+      })();
+    </script>
   </head>
   <body>
     <div id="custom-loading-mask" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99999; background: linear-gradient(135deg, #fce4ec 0%, #e3f2fd 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
@@ -251,76 +351,7 @@
           }
         });
       })();
-
-      // ================ 页面加载与文字替换逻辑 ================
-      window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-          const mask = document.getElementById('custom-loading-mask');
-          if (mask) {
-            mask.style.opacity = '0';
-            setTimeout(() => { mask.style.display = 'none'; }, 500); 
-          }
-        }, 800);
-
-        // 所有的循环检测都放在这里
-        setInterval(() => {
-          try {
-            const currentHash = window.location.hash;
-            const isHomePage = (currentHash === '' || currentHash === '#' || currentHash === '#/' || currentHash === '#/home');
-
-            const logoWrapper = document.getElementById('logo-wrapper');
-            if (logoWrapper) {
-              if (isHomePage) {
-                logoWrapper.style.setProperty('display', 'block', 'important');
-              } else {
-                logoWrapper.style.setProperty('display', 'none', 'important');
-              }
-            }
-
-            const topBar = document.querySelector('.top-bar');
-            if (topBar && !document.getElementById('guide-icon-btn')) {
-              const guideBtn = document.createElement('button');
-              guideBtn.id = 'guide-icon-btn';
-              guideBtn.className = 'house-btn'; 
-              guideBtn.innerHTML = `<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
-              guideBtn.onclick = () => document.getElementById('welcome-guide-overlay').classList.add('show');
-              topBar.appendChild(guideBtn);
-            }
-
-            // 🚀 终极文字替换（安全版）：只替换文本，不破坏 Vue 的事件绑定
-            const treeWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-            let currentNode;
-            while ((currentNode = treeWalker.nextNode())) {
-              // 1. 替换 Sylvia
-              if (currentNode.nodeValue.includes('Sylvia')) {
-                currentNode.nodeValue = currentNode.nodeValue.replace(/Sylvia/g, 'Verse');
-              }
-              // 2. 替换 神明的森林书屋 (如果想删掉直接留空字符串 '')
-              if (currentNode.nodeValue.includes('神明的森林书屋')) {
-                currentNode.nodeValue = currentNode.nodeValue.replace(/神明的森林书屋/g, '梦幻的书境');
-              }
-            }
-          } catch (error) {
-            // 即使替换过程中遇到任何小问题，也不会让整个页面死机白屏
-            console.warn("文字替换时遇到小问题，已忽略以保护页面", error);
-          }
-        }, 500);
-
-        const overlay = document.getElementById('welcome-guide-overlay');
-        setTimeout(() => {
-          const currentHash = window.location.hash;
-          const isLoginPage = currentHash.includes('login');
-          if (!localStorage.getItem('verse_guide_done') && !isLoginPage && overlay) {
-            overlay.classList.add('show');
-          }
-        }, 1200); 
-      });
-
-      function closeGuide() {
-        localStorage.setItem('verse_guide_done', 'true');
-        const overlay = document.getElementById('welcome-guide-overlay');
-        if (overlay) overlay.classList.remove('show');
-      }
+     
     </script>
   
   </body>
