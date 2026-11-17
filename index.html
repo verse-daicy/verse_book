@@ -251,139 +251,94 @@
           }
         });
       })();
-
-      // ================ 页面加载与文字替换逻辑 ================
-      window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-          const mask = document.getElementById('custom-loading-mask');
-          if (mask) {
-            mask.style.opacity = '0';
-            setTimeout(() => { mask.style.display = 'none'; }, 500); 
-          }
-        }, 800);
-
-        // 所有的循环检测都放在这里
-        setInterval(() => {
-          try {
-            const currentHash = window.location.hash;
-            const isHomePage = (currentHash === '' || currentHash === '#' || currentHash === '#/' || currentHash === '#/home');
-
-            const logoWrapper = document.getElementById('logo-wrapper');
-            if (logoWrapper) {
-              if (isHomePage) {
-                logoWrapper.style.setProperty('display', 'block', 'important');
-              } else {
-                logoWrapper.style.setProperty('display', 'none', 'important');
-              }
-            }
-
-            const topBar = document.querySelector('.top-bar');
-            if (topBar && !document.getElementById('guide-icon-btn')) {
-              const guideBtn = document.createElement('button');
-              guideBtn.id = 'guide-icon-btn';
-              guideBtn.className = 'house-btn'; 
-              guideBtn.innerHTML = `<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
-              guideBtn.onclick = () => document.getElementById('welcome-guide-overlay').classList.add('show');
-              topBar.appendChild(guideBtn);
-            }
-
-            // 🚀 终极文字替换（安全版）：只替换文本，不破坏 Vue 的事件绑定
-            const treeWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-            let currentNode;
-            while ((currentNode = treeWalker.nextNode())) {
-              // 1. 替换 Sylvia
-              if (currentNode.nodeValue.includes('Sylvia')) {
-                currentNode.nodeValue = currentNode.nodeValue.replace(/Sylvia/g, 'Verse');
-              }
-              // 2. 替换 神明的森林书屋 (如果想删掉直接留空字符串 '')
-              if (currentNode.nodeValue.includes('神明的森林书屋')) {
-                currentNode.nodeValue = currentNode.nodeValue.replace(/神明的森林书屋/g, '梦幻的书境');
-              }
-            }
-          } catch (error) {
-            // 即使替换过程中遇到任何小问题，也不会让整个页面死机白屏
-            console.warn("文字替换时遇到小问题，已忽略以保护页面", error);
-          }
-        }, 500);
-
-        const overlay = document.getElementById('welcome-guide-overlay');
-        setTimeout(() => {
-          const currentHash = window.location.hash;
-          const isLoginPage = currentHash.includes('login');
-          if (!localStorage.getItem('verse_guide_done') && !isLoginPage && overlay) {
-            overlay.classList.add('show');
-          }
-        }, 1200); 
-      });
-
-      function closeGuide() {
-        localStorage.setItem('verse_guide_done', 'true');
-        const overlay = document.getElementById('welcome-guide-overlay');
-        if (overlay) overlay.classList.remove('show');
-      }
       // =========================================================
-      // 🚀 终极天罗地网：同时拦截 fetch 和 XMLHttpRequest (XHR)
-      // 并强制替换所有包含 auth 或 api 的请求至 Railway 后端
+      // 🚀 终极天罗地网 v2：拦截 API + 修复图片路径
       // =========================================================
       (function() {
         const RAILWAY_URL = "https://verse-server-production-d132dab9.up.railway.app";
         
+        // --- 1. 拦截 Fetch 解决登录/数据请求 ---
         function fixUrl(url) {
           if (typeof url !== 'string') return url;
-          // 如果已经包含了 railway，或者不是发往 api/auth 的，直接放过
           if (url.includes('railway.app')) return url;
           if (!url.includes('api') && !url.includes('auth')) return url;
           
-          console.log("🚀 拦截到请求: ", url);
-          
-          // 提取 url 中的 api/ 或 auth/ 之后的部分
           let path = url;
           let apiIndex = url.indexOf('/api/');
-          if (apiIndex !== -1) {
-             path = url.substring(apiIndex + 5); // 拿到 /api/ 后面的内容
-          } else {
+          if (apiIndex !== -1) path = url.substring(apiIndex + 5);
+          else {
              apiIndex = url.indexOf('api/');
              if (apiIndex !== -1) path = url.substring(apiIndex + 4);
           }
-
-          if (!path.startsWith('/') && !path.startsWith('http')) {
-              path = '/' + path;
-          }
-          
-          // 拼接成绝对路径
+          if (!path.startsWith('/') && !path.startsWith('http')) path = '/' + path;
           let newUrl = path.includes('/api/') ? RAILWAY_URL + path : RAILWAY_URL + '/api' + path;
-          
-          // 兜底，如果原来的 url 前面有斜杠
           if (url.startsWith('/api/')) newUrl = RAILWAY_URL + url;
-          
-          console.log("✅ 强行重定向至: ", newUrl);
           return newUrl;
         }
 
-        // 1. 拦截 Fetch
         const originalFetch = window.fetch;
         window.fetch = function(input, init) {
-          if (typeof input === 'string') {
-            input = fixUrl(input);
-          } else if (input instanceof Request) {
+          if (typeof input === 'string') input = fixUrl(input);
+          else if (input instanceof Request) {
             const newUrl = fixUrl(input.url);
             if (newUrl !== input.url) input = new Request(newUrl, input);
           }
           return originalFetch(input, init);
         };
 
-        // 2. 拦截 XMLHttpRequest (防 axios 等库)
         const originalXHR = window.XMLHttpRequest;
         function newXHR() {
           const xhr = new originalXHR();
           const originalOpen = xhr.open;
           xhr.open = function(method, url, async, user, password) {
-            const newUrl = fixUrl(url);
-            return originalOpen.call(this, method, newUrl, async, user, password);
+            return originalOpen.call(this, method, fixUrl(url), async, user, password);
           };
           return xhr;
         }
         window.XMLHttpRequest = newXHR;
+
+        // --- 2. 强行修正图片路径 (监听 DOM 变化) ---
+        // 你的前端页面地址是 https://verse-daicy.github.io/verse_book/
+        // 如果图片请求以 / 开头，比如 /covers/1.png，会去 https://verse-daicy.github.io/covers/1.png 找，从而 404。
+        // 这段代码会在图片加载失败的瞬间，尝试补全 /verse_book/ 前缀，或者拼上 Railway 域名。
+        
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+              if (node.tagName === 'IMG') {
+                fixImage(node);
+              } else if (node.querySelectorAll) {
+                node.querySelectorAll('img').forEach(fixImage);
+              }
+            });
+          });
+        });
+
+        function fixImage(img) {
+          if (img.dataset.fixed) return;
+          
+          img.addEventListener('error', function() {
+            if (img.dataset.fixed) return;
+            img.dataset.fixed = 'true';
+            
+            let src = img.src;
+            console.log("🖼️ 图片加载失败，尝试修复:", src);
+            
+            // 如果图片在 GitHub 仓库的 covers 文件夹里
+            if (src.includes('github.io') && !src.includes('verse_book')) {
+               img.src = src.replace('github.io/', 'github.io/verse_book/');
+               console.log("✅ 修正前端图片路径:", img.src);
+            } 
+            // 如果图片其实在后端 Railway 里
+            else if (src.includes('github.io')) {
+               const filename = src.split('/').pop();
+               img.src = RAILWAY_URL + '/covers/' + filename;
+               console.log("✅ 尝试从后端拉取图片:", img.src);
+            }
+          });
+        }
+
+        observer.observe(document.body, { childList: true, subtree: true });
       })();
     </script>
   
