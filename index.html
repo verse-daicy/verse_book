@@ -321,31 +321,69 @@
         const overlay = document.getElementById('welcome-guide-overlay');
         if (overlay) overlay.classList.remove('show');
       }
-      // ==========================================
-      // 终极底牌：强行劫持所有 /api 请求，发往 Railway
-      // ==========================================
+      // =========================================================
+      // 🚀 终极天罗地网：同时拦截 fetch 和 XMLHttpRequest (XHR)
+      // 并强制替换所有包含 auth 或 api 的请求至 Railway 后端
+      // =========================================================
       (function() {
         const RAILWAY_URL = "https://verse-server-production-d132dab9.up.railway.app";
-        const originalFetch = window.fetch;
-
-        window.fetch = function(input, init) {
-          let url = typeof input === 'string' ? input : input.url;
+        
+        function fixUrl(url) {
+          if (typeof url !== 'string') return url;
+          // 如果已经包含了 railway，或者不是发往 api/auth 的，直接放过
+          if (url.includes('railway.app')) return url;
+          if (!url.includes('api') && !url.includes('auth')) return url;
           
-          // 只要请求包含 /api，就强行替换目标地址
-          if (url && url.includes('/api/')) {
-            // 把相对路径替换成绝对地址
-            const newUrl = url.replace(/^.*\/api\//, RAILWAY_URL + '/api/');
-            console.log('🚀 拦截请求：', url, '-> 重定向至：', newUrl);
-            
-            if (typeof input === 'string') {
-              input = newUrl;
-            } else {
-              // 如果是 Request 对象，重新构造一个
-              input = new Request(newUrl, input);
-            }
+          console.log("🚀 拦截到请求: ", url);
+          
+          // 提取 url 中的 api/ 或 auth/ 之后的部分
+          let path = url;
+          let apiIndex = url.indexOf('/api/');
+          if (apiIndex !== -1) {
+             path = url.substring(apiIndex + 5); // 拿到 /api/ 后面的内容
+          } else {
+             apiIndex = url.indexOf('api/');
+             if (apiIndex !== -1) path = url.substring(apiIndex + 4);
+          }
+
+          if (!path.startsWith('/') && !path.startsWith('http')) {
+              path = '/' + path;
+          }
+          
+          // 拼接成绝对路径
+          let newUrl = path.includes('/api/') ? RAILWAY_URL + path : RAILWAY_URL + '/api' + path;
+          
+          // 兜底，如果原来的 url 前面有斜杠
+          if (url.startsWith('/api/')) newUrl = RAILWAY_URL + url;
+          
+          console.log("✅ 强行重定向至: ", newUrl);
+          return newUrl;
+        }
+
+        // 1. 拦截 Fetch
+        const originalFetch = window.fetch;
+        window.fetch = function(input, init) {
+          if (typeof input === 'string') {
+            input = fixUrl(input);
+          } else if (input instanceof Request) {
+            const newUrl = fixUrl(input.url);
+            if (newUrl !== input.url) input = new Request(newUrl, input);
           }
           return originalFetch(input, init);
         };
+
+        // 2. 拦截 XMLHttpRequest (防 axios 等库)
+        const originalXHR = window.XMLHttpRequest;
+        function newXHR() {
+          const xhr = new originalXHR();
+          const originalOpen = xhr.open;
+          xhr.open = function(method, url, async, user, password) {
+            const newUrl = fixUrl(url);
+            return originalOpen.call(this, method, newUrl, async, user, password);
+          };
+          return xhr;
+        }
+        window.XMLHttpRequest = newXHR;
       })();
     </script>
   
