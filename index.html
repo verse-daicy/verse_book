@@ -252,93 +252,60 @@
         });
       })();
       // =========================================================
-      // 🚀 终极天罗地网 v2：拦截 API + 修复图片路径
+      // 🚀 终极安全版：只拦截 API，轻量修复图片
       // =========================================================
       (function() {
         const RAILWAY_URL = "https://verse-server-production-d132dab9.up.railway.app";
         
-        // --- 1. 拦截 Fetch 解决登录/数据请求 ---
-        function fixUrl(url) {
-          if (typeof url !== 'string') return url;
-          if (url.includes('railway.app')) return url;
-          if (!url.includes('api') && !url.includes('auth')) return url;
-          
-          let path = url;
-          let apiIndex = url.indexOf('/api/');
-          if (apiIndex !== -1) path = url.substring(apiIndex + 5);
-          else {
-             apiIndex = url.indexOf('api/');
-             if (apiIndex !== -1) path = url.substring(apiIndex + 4);
-          }
-          if (!path.startsWith('/') && !path.startsWith('http')) path = '/' + path;
-          let newUrl = path.includes('/api/') ? RAILWAY_URL + path : RAILWAY_URL + '/api' + path;
-          if (url.startsWith('/api/')) newUrl = RAILWAY_URL + url;
-          return newUrl;
-        }
-
+        // 1. 拦截 Fetch (修复登录)
         const originalFetch = window.fetch;
         window.fetch = function(input, init) {
-          if (typeof input === 'string') input = fixUrl(input);
-          else if (input instanceof Request) {
-            const newUrl = fixUrl(input.url);
-            if (newUrl !== input.url) input = new Request(newUrl, input);
+          let url = typeof input === 'string' ? input : input.url;
+          if (url && url.includes('/api/') && !url.includes('railway.app')) {
+            let newUrl = url.replace(/^.*\/api\//, RAILWAY_URL + '/api/');
+            if (typeof input === 'string') input = newUrl;
+            else input = new Request(newUrl, input);
           }
           return originalFetch(input, init);
         };
 
+        // 2. 拦截 XHR (防 axios 等)
         const originalXHR = window.XMLHttpRequest;
-        function newXHR() {
+        window.XMLHttpRequest = function() {
           const xhr = new originalXHR();
           const originalOpen = xhr.open;
-          xhr.open = function(method, url, async, user, password) {
-            return originalOpen.call(this, method, fixUrl(url), async, user, password);
+          xhr.open = function(method, url, ...args) {
+            if (url && url.includes('/api/') && !url.includes('railway.app')) {
+              url = url.replace(/^.*\/api\//, RAILWAY_URL + '/api/');
+            }
+            return originalOpen.call(this, method, url, ...args);
           };
           return xhr;
-        }
-        window.XMLHttpRequest = newXHR;
+        };
 
-        // --- 2. 强行修正图片路径 (监听 DOM 变化) ---
-        // 你的前端页面地址是 https://verse-daicy.github.io/verse_book/
-        // 如果图片请求以 / 开头，比如 /covers/1.png，会去 https://verse-daicy.github.io/covers/1.png 找，从而 404。
-        // 这段代码会在图片加载失败的瞬间，尝试补全 /verse_book/ 前缀，或者拼上 Railway 域名。
-        
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-              if (node.tagName === 'IMG') {
-                fixImage(node);
-              } else if (node.querySelectorAll) {
-                node.querySelectorAll('img').forEach(fixImage);
-              }
-            });
-          });
-        });
-
-        function fixImage(img) {
-          if (img.dataset.fixed) return;
-          
-          img.addEventListener('error', function() {
-            if (img.dataset.fixed) return;
-            img.dataset.fixed = 'true';
+        // 3. 轻量修复图片 (不用死循环监听，直接用全局捕获)
+        window.addEventListener('error', function(e) {
+          if (e.target && e.target.tagName === 'IMG') {
+            let img = e.target;
+            if (img.dataset.triedFix) return; // 防止死循环
+            img.dataset.triedFix = 'true';
             
             let src = img.src;
-            console.log("🖼️ 图片加载失败，尝试修复:", src);
+            console.log("发现图片 404，尝试抢救:", src);
             
-            // 如果图片在 GitHub 仓库的 covers 文件夹里
-            if (src.includes('github.io') && !src.includes('verse_book')) {
-               img.src = src.replace('github.io/', 'github.io/verse_book/');
-               console.log("✅ 修正前端图片路径:", img.src);
-            } 
-            // 如果图片其实在后端 Railway 里
-            else if (src.includes('github.io')) {
-               const filename = src.split('/').pop();
-               img.src = RAILWAY_URL + '/covers/' + filename;
-               console.log("✅ 尝试从后端拉取图片:", img.src);
+            // 抢救方案 A：如果请求的是根目录图片，尝试去 GitHub 的 covers 或 assets 目录找
+            if (src.includes('github.io') && !src.includes('verse_book/assets') && !src.includes('verse_book/covers')) {
+                let filename = src.split('/').pop();
+                // 尝试前端仓库的 covers 文件夹
+                img.src = `https://verse-daicy.github.io/verse_book/covers/${filename}`;
             }
-          });
-        }
-
-        observer.observe(document.body, { childList: true, subtree: true });
+            // 抢救方案 B：如果图片在后端，尝试从 Railway 拉取
+            else if (src.includes('github.io')) {
+                let filename = src.split('/').pop();
+                img.src = RAILWAY_URL + '/covers/' + filename;
+            }
+          }
+        }, true); // 使用捕获阶段，确保能抓到资源加载失败
       })();
     </script>
   
